@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Network Packet Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .packet-window {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-height: 400px;
+            overflow-y: scroll;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .suspicious-row {
+            background-color: #ffdddd;
+        }
+        .analyze-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .analysis-result {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .warning {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Network Packet Analyzer</h1>
+    
+    <div class="packet-window">
+        <h2>Current Packets</h2>
+        <table id="packetTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Source IP</th>
+                    <th>Destination IP</th>
+                    <th>Protocol</th>
+                    <th>Bytes</th>
+                    <th>Flags</th>
+                    <th>Timestamp</th>
+                    <th>Port</th>
+                </tr>
+            </thead>
+            <tbody id="packetTableBody">
+                <!-- Packet rows will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <button class="analyze-btn" onclick="performAnalysis()">Analyze Packets</button>
+
+    <div id="analysisResult" class="analysis-result" style="display: none;">
+        <h2 class="warning">Threat Analysis</h2>
+        <div id="analysisContent"></div>
+    </div>
+
+    <script>
+        // Simulated DoS packet dataset with many more packets
+        const simulatedPackets = Array.from({length: 100}, (_, index) => ({
+            id: index + 1, 
+            srcIP: `192.168.1.${Math.floor(Math.random() * 255)}`, 
+            dstIP: '203.0.113.10', 
+            protocol: 'TCP', 
+            bytes: 1024, 
+            flags: 'SYN',
+            timestamp: `2024-03-15 10:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
+            port: 80
+        }));
+
+        // Function to populate packet table
+        function populatePacketTable() {
+            const tableBody = document.getElementById('packetTableBody');
+            simulatedPackets.forEach(packet => {
+                const row = tableBody.insertRow();
+                row.classList.add('suspicious-row');
+                row.insertCell(0).textContent = packet.id;
+                row.insertCell(1).textContent = packet.srcIP;
+                row.insertCell(2).textContent = packet.dstIP;
+                row.insertCell(3).textContent = packet.protocol;
+                row.insertCell(4).textContent = packet.bytes;
+                row.insertCell(5).textContent = packet.flags;
+                row.insertCell(6).textContent = packet.timestamp;
+                row.insertCell(7).textContent = packet.port;
+            });
+        }
+
+        // Function to perform analysis
+        function performAnalysis() {
+            const analysisResult = document.getElementById('analysisResult');
+            const analysisContent = document.getElementById('analysisContent');
+
+            analysisContent.innerHTML = `
+                <p><strong>Attack Type:</strong> Denial of Service (DoS) Attack</p>
+                <p><strong>Explanation:</strong> The packet dataset shows a concentrated flood of TCP SYN packets targeting a single destination IP (203.0.113.10). This is a classic Denial of Service (DoS) attack where a single source overwhelms the target server with connection requests, exhausting its resources and preventing legitimate traffic from accessing the service.</p>
+                <p><strong>Characteristics Observed:</strong></p>
+                <ul>
+                    <li>Consistent packet size (1024 bytes)</li>
+                    <li>Repeated SYN flag activation</li>
+                    <li>Concentrated attack on a single destination IP</li>
+                    <li>High volume of packets from multiple source IPs</li>
+                </ul>
+                <p><strong>Recommendations:</strong></p>
+                <ul>
+                    <li>Configure firewall to detect and block SYN flood attempts</li>
+                    <li>Implement SYN cookies to mitigate half-open connections</li>
+                    <li>Increase server's maximum transmission backlog</li>
+                    <li>Use traffic filtering to identify and block suspicious traffic</li>
+                    <li>Deploy intrusion prevention systems (IPS)</li>
+                    <li>Monitor network traffic for unusual patterns</li>
+                </ul>
+            `;
+
+            analysisResult.style.display = 'block';
+        }
+
+        // Populate table when page loads
+        window.onload = populatePacketTable;
+    </script>
+</body>
+</html>
